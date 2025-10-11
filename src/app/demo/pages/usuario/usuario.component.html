@@ -1,0 +1,154 @@
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <h3 class="mb-0">
+            <i class="fa fa-users"></i>
+            &nbsp;Lista de usuarios
+          </h3>
+          <small>Estos son los usuarios registrados en el sistema.</small>
+        </div>
+        <div class="col-lg-5 text-end">
+          <button class="btn btn-outline-primary" (click)="abrirNuevoUsuario()">Nuevo Usuario</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Nombre de usuario</th>
+              <th>Rol</th>
+              <th>Fecha de creacion</th>
+              <th>Activo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="usuariosList.length > 0">
+            <tr *ngFor="let usuario of usuariosList">
+              <td>{{ usuario.id }}</td>
+              <td>{{ usuario.username }}</td>
+              <td>{{ usuario.rol }}</td>
+              <td>{{ usuario.fechaCreacion }}</td>
+              <td>
+                <i class="fa" [ngClass]="usuario.activo === true ? 'fa-check text-success' : 'fa-times text-danger'" aria-hidden="true"></i>
+              </td>
+              <td>
+                <button class="btn btn-outline-primary" (click)="abrirEditarUsuario(usuario)">
+                  <i class="fa fa-edit"></i>Editar</button>
+              </td>
+            </tr>
+          </tbody>
+          <tbody *ngIf="usuariosList.length === 0">
+            <tr>
+              <td colspan="6" class="text-center">No hay usuarios disponibles.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nuevo Usuario -->
+<div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-labelledby="modalCrearUsuarioLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCrearUsuarioLabel"> {{ titleModal }}</h5>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col">
+            <form [formGroup]="form">
+              <!--  Nombre de usuario -->
+              <div class="mb-3">
+                <label for="username" class="form-label">Nombre de usuario</label>
+                <input
+                  type="text"
+                  formControlName="username"
+                  class="form-control"
+                  id="username"
+                  placeholder="Ingrese el nombre de usuario"                 
+                  [ngModel]="usuarioSelected ? usuarioSelected.username : ''"
+                />
+                <div *ngIf="form.get('username')?.hasError('required') && form.get('username')?.touched" class="text-danger">
+                  El nombre de usuario es requerido.
+                </div>
+                <div *ngIf="form.get('username')?.hasError('minLength') && form.get('username')?.touched" class="text-danger">
+                  El nombre de usuario debe tener al menos 4 caracteres.
+                </div>
+                <div *ngIf="form.get('username')?.hasError('maxLength') && form.get('username')?.touched" class="text-danger">
+                  El nombre de usuario debe tener máximo 12 caracteres.
+                </div>
+              </div>
+
+              <!--  Contraseña de usuario -->
+              <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <input
+                  type="password"
+                  formControlName="password"
+                  class="form-control"
+                  id="password"
+                  placeholder="Ingrese la contraseña de usuario"                 
+                  [ngModel]="usuarioSelected ? usuarioSelected.password : ''"
+                />
+                <div *ngIf="form.get('password')?.hasError('required') && form.get('password')?.touched" class="text-danger">
+                  La contraseña del usuario es requerido.
+                </div>               
+              </div>
+
+              <!--  Rol de usuario -->
+              <div class="mb-3">
+                <label for="rol" class="form-label">Rol</label>
+                <select
+                  formControlName="rol"
+                  class="form-control"
+                  id="rol"
+                  [ngModel]="usuarioSelected ? usuarioSelected.rol : ''"
+                >
+                  <option value="" disabled selected>Seleccione el rol de usuario</option>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="PACIENTE">PACIENTE</option>
+                  <option value="MEDICO">MEDICO</option>
+                </select>
+                <div *ngIf="form.get('rol')?.hasError('required') && form.get('rol')?.touched" class="text-danger">
+                  El rol del usuario es requerido.
+                </div>               
+              </div>
+
+
+                <!--  Estado del usuario -->
+              <div class="mb-3" *ngIf="modoFormulario === 'E'">
+                <label for="activo" class="form-label">Estado</label>
+                <select
+                  formControlName="activo"
+                  class="form-control"
+                  id="activo"
+                  [ngModel]="usuarioSelected ? usuarioSelected.activo : ''"
+                >
+                  <option value="" disabled selected>Seleccione una opcion</option>
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
+                <div *ngIf="form.get('activo')?.hasError('required') && form.get('activo')?.touched" class="text-danger">
+                  El estado del usuario es requerido.
+                </div>               
+              </div>
+              
+            </form>
+          </div>
+        </div>        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="guardarUsuario()" [disabled]="form.invalid">{{titleBoton}}</button>
+      </div>
+    </div>
+  </div>
+</div>
