@@ -19,7 +19,7 @@ import {
 import Swal from 'sweetalert2';
 // Importa los objetos necesarios de Bootstrap
 import Modal from 'bootstrap/js/dist/modal';
-import { delay, map, Observable, of } from 'rxjs';
+
 import { Especializacion } from './models/especializacion';
 import { EspecializacionService } from '../especializacion/service/especializacion.service';
 
@@ -27,16 +27,17 @@ import { EspecializacionService } from '../especializacion/service/especializaci
   selector: 'app-medico',
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './medico.component.html',
-  styleUrl: './medico.component.scss'
+  styleUrls: ['./medico.component.scss']
 })
-export class MedicoComponent implements AfterViewInit {
+export class MedicoComponent {
   modalInstance: Modal | null = null;
-  modoFormulario: string = '';
-  titleModal: string = '';
-  titleBoton: string = '';
   medicoList: Medico[] = [];
   especializacionList: Especializacion[] = [];
   medicoSelected: Medico;
+
+  modoFormulario: string = '';
+  titleModal: string = '';
+  titleBoton: string = '';
 
   /**
    * Formulario para crear/editar médico.
@@ -72,7 +73,7 @@ export class MedicoComponent implements AfterViewInit {
       numeroDocumento: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
       registroProfesional: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
       telefono: ['', [Validators.required, Validators.minLength(7), Validators.maxLength(15)]],
-      especializacion: ['', [Validators.required]]
+      especializacionId: ['', [Validators.required]]
     });
   }
 
@@ -91,13 +92,12 @@ export class MedicoComponent implements AfterViewInit {
   listarMedicos() {
     this.medicoService.listarMedicos().subscribe({
       next: (data) => {
-        console.log(data);
         this.medicoList = data;
         // Re-initialize tooltips after data is loaded
         setTimeout(() => this.initializeTooltips(), 0);
       },
       error: (error) => {
-        console.error('Error fetching medicos:', error);
+        console.error('Error al listar medicos:', error);
       }
     });
   }
@@ -110,22 +110,14 @@ export class MedicoComponent implements AfterViewInit {
   }
 
   /**
-     * Funcion para cerrar el modal.
-     */
-  closeModal() {
-    if (this.modalInstance) {
-      this.modalInstance.hide();
-    }
-  }
-
-  /**
    * Abre el modal para crear o editar un Medico.
    * @param modo 'C' para crear, 'E' para editar
    */
-  openModal(modo: string) {
+openModal(modo: 'C' | 'E') {
+    this.modoFormulario = modo;
     this.titleModal = modo === 'C' ? 'Crear Medico' : 'Editar Medico';
     this.titleBoton = modo === 'C' ? 'Guardar Medico' : 'Actualizar Medico';
-    this.modoFormulario = modo;
+    
     const modalElement = document.getElementById('modalCrearMedico');
     if (modalElement) {
       // Verificar si ya existe una instancia del modal
@@ -135,14 +127,81 @@ export class MedicoComponent implements AfterViewInit {
   }
 
   /**
+     * Funcion para cerrar el modal.
+     */
+closeModal() {
+  if (this.modalInstance) {
+      this.modalInstance.hide();
+    }
+  }
+
+
+  /**
    * Abre el modal para crear un nuevo médico.
    */
-  abrirNuevoMedico() {
-    this.medicoSelected = new Medico();
+abrirNuevoMedico() {
+    this.medicoSelected = null;
     // Dejamos el formulario en blanco
-    this.limpiarFormulario();
+    this.form.reset();
     this.openModal('C');
   }
+
+  /**
+   * Abre el modal para editar un usuario existente.
+   * @param medico Medico a editar.
+   */
+abrirEditarMedico(medico: Medico) {
+    this.medicoSelected = medico;
+    this.form.patchValue({
+      nombres: medico.nombres,
+      apellidos: medico.apellidos,
+      tipoDocumento: medico.tipoDocumento,
+      numeroDocumento: medico.numeroDocumento,
+      telefono: medico.telefono,
+      registroProfesional: medico.registroProfesional,
+      especializacionId: medico.especializacion?.id || medico.especializacion
+    });
+    this.openModal('E');
+  }
+
+guardarMedico() {
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
+  }
+
+  const medico: Medico = {
+    ...this.form.value,
+    especializacion: { id: 
+      Number(this.form.value.especializacionId)} // usa el control 'especializacion' (contiene el id)
+  };
+
+  this.medicoService.guardarMedicos(medico).subscribe({
+    next: (data) => {
+      Swal.fire({
+        icon: 'success',
+        title: 'Médico guardado',
+        text: 'El médico fue registrado exitosamente',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      this.closeModal();
+      this.listarMedicos();
+    },
+    error: (error) => {
+      console.error('Error al guardar el médico:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar',
+        text: 'No se pudo guardar el médico. Revisa los datos e intenta nuevamente.',
+      });
+    },
+  });
+}
+
+
+
+
 
   /**
    * Limpia los campos del formulario.
@@ -153,15 +212,7 @@ export class MedicoComponent implements AfterViewInit {
     this.form.markAsUntouched();
   }
 
-  /**
-   * Abre el modal para editar un usuario existente.
-   * @param medico Medico a editar.
-   */
-  abrirEditarMedico(medico: Medico) {
-    this.limpiarFormulario();
-    this.medicoSelected = medico;
-    this.openModal('E');
-  }
+
 
   /**
    * Initialize Bootstrap tooltips

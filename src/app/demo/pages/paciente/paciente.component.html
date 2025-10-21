@@ -1,11 +1,18 @@
 <div class="container">
   <div class="card">
     <div class="card-header">
-      <h3 class="mb-0">
-        <i class="fa fa-user-md"></i>
-        &nbsp;Lista de pacientes
-      </h3>
-      <small>Estos son los pacientes registrados en el sistema.</small>
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <h3 class="mb-0">
+            <i class="fa fa-medkit"></i>
+            &nbsp;Lista de pacientes
+          </h3>
+          <small>Estos son los pacientes registrados en el sistema..</small>
+        </div>
+        <div class="col-lg-5 text-end">
+          <button class="btn btn-outline-primary" (click)="abrirNuevoPaciente()">Nuevo Paciente</button>
+        </div>
+      </div>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -24,30 +31,85 @@
               <th>Acciones</th>
             </tr>
           </thead>
-          <tbody *ngIf="pacienteList.length > 0">
-            <tr *ngFor="let p of pacienteList">
-              <td>{{ p.id }}</td>
-              <td>{{ p.tipoDocumento }}</td>
-              <td>{{ p.numeroDocumento }}</td>
-              <td>{{ p.nombres }}</td>
-              <td>{{ p.apellidos }}</td>
-              <td>{{ p.fechaNacimiento }}</td>
-              <td>{{ p.genero }}</td>
-              <td>{{ p.direccion }}</td>
-              <td>{{ p.telefono }}</td>
-              <td>
-                <button class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-                  title="Editar paciente">
-                  <i class="fa fa-edit"></i></button>
+          <tbody *ngIf="pacientesList.length > 0; else sinDatos">
+            <tr *ngFor="let paciente of pacientesList">
+              <td>{{ paciente.id }}</td>
+              <td>{{ paciente.tipoDocumento }}</td>
+              <td>{{ paciente.numeroDocumento }}</td>
+              <td>{{ paciente.nombres }}</td>
+              <td>{{ paciente.apellidos }}</td>
+              <td>{{ paciente.fechaNacimiento }}</td>
+              <td>{{ paciente.genero }}</td>
+              <td>{{ paciente.direccion }}</td>
+              <td>{{ paciente.telefono }}</td>
+              <td><button class="btn btn-outline-primary" (click)="abrirEditarPaciente(paciente)">
+                  <i class="fa fa-edit"></i> Editar
+                </button>
               </td>
             </tr>
           </tbody>
-          <tbody *ngIf="pacienteList.length === 0">
+          <ng-template #sinDatos>
             <tr>
-              <td colspan="10" class="text-center">No hay pacientes disponibles.</td>
+              <td colspan="7" class="text-center">No hay pacientes disponibles.</td>
             </tr>
-          </tbody>
+          </ng-template>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalCrearPaciente" tabindex="-1" aria-labelledby="modalCrearPacienteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ titleModal }}</h5>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="form">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label>Nombre</label>
+              <input type="text" class="form-control" formControlName="nombres" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Apellido</label>
+              <input type="text" class="form-control" formControlName="apellidos" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Tipo de Documento</label>
+              <input type="text" class="form-control" formControlName="tipoDocumento" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Número de Documento</label>
+              <input type="text" class="form-control" formControlName="numeroDocumento" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Fecha de Nacimiento</label>
+              <input type="date" class="form-control" formControlName="fechaNacimiento" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Género</label>
+              <input type="text" class="form-control" formControlName="genero" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Teléfono</label>
+              <input type="text" class="form-control" formControlName="telefono" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Dirección</label>
+              <input type="text" class="form-control" formControlName="direccion" />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarPaciente()" [disabled]="form.invalid">{{ titleBoton }}</button>
       </div>
     </div>
   </div>

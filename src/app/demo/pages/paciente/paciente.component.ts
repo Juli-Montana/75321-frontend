@@ -1,57 +1,123 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { PacienteService } from './service/paciente.service';
 import { Paciente } from './model/paciente';
 import { CommonModule } from '@angular/common';
-
+import { FormBuilder, FormGroup, Validators, AbstractControl, FormsModule, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
+import Swal from 'sweetalert2';
+import Modal from 'bootstrap/js/dist/modal';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 @Component({
   selector: 'app-paciente',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './paciente.component.html',
-  styleUrl: './paciente.component.scss'
+  styleUrls: ['./paciente.component.scss']
 })
-export class PacienteComponent implements AfterViewInit {
-  pacienteList: Paciente[] = [];
 
-  constructor(private readonly pacienteService: PacienteService) {
+export class PacienteComponent {
+  modalInstance: Modal | null = null;
+  pacientesList: Paciente[] = [];
+  pacienteSelected: Paciente | null = null;
+
+  titleModal = '';
+  titleBoton = '';
+  modoFormulario = '';
+
+  form: FormGroup;
+
+  constructor(
+    private pacienteService: PacienteService,
+    private fb: FormBuilder
+  ) {
+    this.form = this.fb.group({
+      tipoDocumento: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)]],
+      numeroDocumento: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(20)]],
+      nombres: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      apellidos: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      fechaNacimiento: ['', [Validators.required]],
+      genero: ['', [Validators.required]],
+      telefono: ['', [Validators.required, Validators.minLength(7), Validators.maxLength(20)]],
+      direccion: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]]
+    });
+
     this.listarPacientes();
   }
 
-  ngAfterViewInit() {
-    // Inicializa el tooltip de Bootstrap
-    this.initializeTooltips();
+  get f(): { [key: string]: AbstractControl } {
+    return this.form.controls;
   }
 
   listarPacientes() {
     this.pacienteService.listarPacientes().subscribe({
-      next: (data) => {
-        console.log(data);
-        this.pacienteList = data;
-        // Re-initialize tooltips after data is loaded
-        setTimeout(() => this.initializeTooltips(), 0);
-      },
-      error: (error) => {
-        console.error('Error fetching pacientes:', error);
-      }
-    })
+      next: (data) => (this.pacientesList = data),
+      error: (err) => console.error('Error al listar pacientes', err)
+    });
   }
 
-  /**
- * Initialize Bootstrap tooltips
- */
-  private initializeTooltips() {
-    try {
-      const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-      tooltipTriggerList.forEach((tooltipTriggerEl) => {
-        // Safe way to access Bootstrap's Tooltip constructor
-        const bootstrapGlobal = (window as unknown as { bootstrap?: { Tooltip: new (element: Element) => void } }).bootstrap;
-        if (bootstrapGlobal) {
-          new bootstrapGlobal.Tooltip(tooltipTriggerEl);
-        }
-      });
-    } catch (error) {
-      console.warn('Bootstrap tooltips could not be initialized:', error);
+  openModal(modo: 'C' | 'E') {
+    this.modoFormulario = modo;
+    this.titleModal = modo === 'C' ? 'Registrar Paciente' : 'Editar Paciente';
+    this.titleBoton = modo === 'C' ? 'Guardar' : 'Actualizar';
+
+    const modalEl = document.getElementById('modalCrearPaciente');
+    if (modalEl) {
+      this.modalInstance ??= new Modal(modalEl);
+      this.modalInstance.show();
     }
   }
+
+  closeModal() {
+    if (this.modalInstance) this.modalInstance.hide();
+  }
+
+  abrirNuevoPaciente() {
+    this.pacienteSelected = null;
+    this.form.reset({ id: null });
+    this.openModal('C');
+  }
+
+  abrirEditarPaciente(paciente: Paciente) {
+    this.pacienteSelected = paciente;
+    this.form.patchValue({
+      id: paciente.id,
+      tipoDocumento: paciente.tipoDocumento,
+      numeroDocumento: paciente.numeroDocumento,
+      nombres: paciente.nombres,
+      apellidos: paciente.apellidos,
+      fechaNacimiento: paciente.fechaNacimiento,
+      genero: paciente.genero,
+      telefono: paciente.telefono,
+      direccion: paciente.direccion
+    });
+    this.openModal('E');
+  }
+
+  guardarPaciente() {
+    if (this.form.invalid) {
+      Swal.fire('Error', 'Por favor complete los campos requeridos', 'error');
+      return;
+    }
+
+    const pacienteData: Paciente = {...this.form.value,id: this.pacienteSelected?.id || this.form.value.id || null};
+
+
+    const request =
+      this.modoFormulario === 'C'
+        ? this.pacienteService.guardarPaciente(pacienteData)
+        : this.pacienteService.actualizarPaciente(pacienteData);
+
+    request.subscribe({
+      next: (data) => {
+        Swal.fire('Éxito', data.mensaje, 'success');
+        this.closeModal();
+        this.listarPacientes();
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        Swal.fire('Error', error.error.message || 'Ocurrió un error', 'error');
+      }
+    });
+  }
 }
+
