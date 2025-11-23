@@ -21,4 +21,8 @@ export class CitaService {
   guardarCita(cita: Cita): Observable<RespuestaRS> {
     return this.backendService.post(this.apiUrl, this.endpoint, 'guardar', cita);
   }
+
+  actualizarCita(cita: Cita): Observable<RespuestaRS> {
+    return this.backendService.post(this.apiUrl, this.endpoint, 'actualizar', cita);
+  }
 }

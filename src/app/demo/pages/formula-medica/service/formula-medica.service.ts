@@ -20,4 +20,8 @@ export class FormulaMedicaService {
   guardarFormulaMedica(formulaMedica: FormulaMedica): Observable<any> {
     return this.backendService.post(this.apiUrl, this.endpoint, 'guardar', formulaMedica);
   }
+
+    actualizarFormulaMedica(formulaMedica: FormulaMedica): Observable<any> {
+      return this.backendService.post(this.apiUrl, this.endpoint, 'actualizar', formulaMedica);}
+    
 }

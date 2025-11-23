@@ -1,7 +1,7 @@
 export class Paciente {
-  id: number;
+  id?: number;
   tipoDocumento: string;
-  numeroDocumento: string;
+  numeroDocumento: string
   nombres: string;
   apellidos: string
   fechaNacimiento: string;

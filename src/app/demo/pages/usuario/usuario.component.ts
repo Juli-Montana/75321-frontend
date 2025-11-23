@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { UsuarioService } from './service/usuario.service';
 import { Usuario } from './model/usuario';
 import { CommonModule } from '@angular/common';
+import { NgxSpinnerModule, NgxSpinnerService  } from "ngx-spinner";
 
 import {
   FormBuilder,
@@ -18,10 +19,12 @@ import Swal from 'sweetalert2';
 // Importa los objetos necesarios de Bootstrap
 import Modal from 'bootstrap/js/dist/modal';
 import { delay, map, Observable, of } from 'rxjs';
+import { NgbCarouselConfig } from '@ng-bootstrap/ng-bootstrap';
+
 
 @Component({
   selector: 'app-usuario',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxSpinnerModule],
   templateUrl: './usuario.component.html',
   styleUrl: './usuario.component.scss'
 })
@@ -32,6 +35,7 @@ export class UsuarioComponent {
   titleBoton: string = '';
   usuariosList: Usuario[] = [];
   usuarioSelected: Usuario;
+  titleSpinner: string = 'Cargando...';
 
   /**
    * Formulario para crear/editar usuario.
@@ -45,10 +49,17 @@ export class UsuarioComponent {
 
   constructor(
     private readonly usuarioService: UsuarioService,
-    private readonly formBuilder: FormBuilder
+    private readonly formBuilder: FormBuilder,
+    private readonly spinner: NgxSpinnerService
   ) {
     this.listarUsuarios();
     this.inicializarFormulario();
+    this.spinner.show();
+
+    setTimeout(() => {
+      /** spinner ends after 5 seconds */
+      this.spinner.hide();
+    }, 5000);
   }
 
   /**
@@ -164,7 +175,6 @@ export class UsuarioComponent {
       this.form.get('activo').setValue(true);
       this.usuarioService.guardarUsuario(this.form.getRawValue()).subscribe({
         next: (data) => {
-          console.log(data);
           Swal.fire('Éxito', data.mensaje, 'success');
           this.closeModal();
           this.listarUsuarios();
@@ -177,7 +187,6 @@ export class UsuarioComponent {
     } else {
       this.usuarioService.actualizarUsuario(this.form.getRawValue()).subscribe({
         next: (data) => {
-          console.log(data);
           Swal.fire('Éxito', data.mensaje, 'success');
           this.closeModal();
           this.listarUsuarios();

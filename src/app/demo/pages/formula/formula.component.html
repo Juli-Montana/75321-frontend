@@ -1,0 +1,138 @@
+<ngx-spinner type="ball-atom" size="large" color="#FFFFFF">
+  <p>{{titleSpinner}}</p>
+</ngx-spinner>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <h3 class="mb-0">
+            <i class="fa fa-file-medical"></i>
+            &nbsp;Lista de Fórmulas Médicas
+          </h3>
+          <small>Estas son las fórmulas médicas registradas en el sistema.</small>
+        </div>
+        <div class="col-lg-5 text-end">
+          <button class="btn btn-outline-primary" (click)="abrirNuevaFormulaMedica()">Nueva Fórmula Médica</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Paciente</th>
+              <th>Medicamento</th>
+              <th>Dosis</th>
+              <th>Indicaciones</th>
+              <th>Fecha y Hora</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <!-- Si hay fórmulas médicas -->
+          <tbody *ngIf="formulaMedicaList.length > 0">
+            <tr *ngFor="let formula of formulaMedicaList; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ formula.cita.paciente.nombres }} {{ formula.cita.paciente.apellidos }}</td>
+              <td>{{ formula.medicamento.nombre }}</td>
+              <td>{{ formula.dosis }}</td>
+              <td>{{ formula.indicaciones }}</td>
+              <td>{{ formula.fechaCreacionRegistro }}</td>
+              <td>
+                <button class="btn btn-outline-primary btn-sm" (click)="abrirEditarFormulaMedica(formula)">
+                  <i class="fa fa-edit"></i> Editar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+
+          <!-- Si no hay fórmulas médicas -->
+          <tbody *ngIf="formulaMedicaList.length === 0">
+            <tr>
+              <td colspan="7" class="text-center">No hay fórmulas médicas registradas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR/EDITAR FÓRMULA MÉDICA -->
+<div class="modal fade" id="modalCrearFormulaMedica" tabindex="-1" aria-labelledby="modalCrearFormulaMedicaLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCrearFormulaMedicaLabel">{{ titleModal }}</h5>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="form">
+          <div class="row">
+            <!-- Cita -->
+            <div class="mb-3">
+              <label for="citaId" class="form-label">Cita</label>
+              <select formControlName="citaId" id="citaId" class="form-select">
+                <option value="">Seleccione una cita</option>
+                <option *ngFor="let c of citasList" [ngValue]="c.id">
+                  {{ c.paciente.nombres }} {{ c.paciente.apellidos }}
+                </option>
+              </select>
+              <div *ngIf="form.get('cita')?.hasError('required') && form.get('citaId')?.touched" class="text-danger">
+                La cita es requerida.
+              </div>
+            </div>
+
+            <!-- Medicamento -->
+            <div class="mb-3">
+              <label for="medicamentoId" class="form-label">Medicamento</label>
+              <select formControlName="medicamentoId" id="medicamentoId" class="form-select">
+                <option value="">Seleccione un medicamento</option>
+                <option *ngFor="let m of medicamentosList" [ngValue]="m.id">
+                  {{ m.nombre }}
+                </option>
+              </select>
+              <div *ngIf="form.get('medicamento')?.hasError('required') && form.get('medicamento')?.touched"
+                class="text-danger">
+                El medicamento es requerido.
+              </div>
+            </div>
+
+            <!-- Dosis -->
+            <div class="mb-3">
+              <label for="dosis" class="form-label">Dosis</label>
+              <input type="text" formControlName="dosis" class="form-control" id="dosis" />
+              <div *ngIf="form.get('dosis')?.hasError('required') && form.get('dosis')?.touched" class="text-danger">
+                La dosis es obligatoria.
+              </div>
+            </div>
+
+            <!-- Indicaciones -->
+            <div class="mb-3">
+              <label for="indicaciones" class="form-label">Indicaciones</label>
+              <textarea formControlName="indicaciones" class="form-control" id="indicaciones" rows="3"></textarea>
+              <div *ngIf="form.get('indicaciones')?.hasError('required') && form.get('indicaciones')?.touched"
+                class="text-danger">
+                Las indicaciones son obligatorias.
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer del modal -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="guardarFormulaMedica()" [disabled]="form.invalid">
+          {{ titleBoton }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

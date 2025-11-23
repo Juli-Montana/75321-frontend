@@ -1,3 +1,7 @@
+<ngx-spinner type="ball-atom" size = "large" color = "#FFFFFF">
+  <p>{{titleSpinner}}</p>
+</ngx-spinner>
+
 <div class="container">
   <div class="card">
     <div class="card-header">
@@ -32,7 +36,7 @@
               <td>{{ usuario.id }}</td>
               <td>{{ usuario.username }}</td>
               <td>{{ usuario.rol }}</td>
-              <td>{{ usuario.fechaCreacion }}</td>
+              <td>{{ usuario.fechaCreacion | date: "yyyy-MM-dd HH:mm:ss" }}</td>
               <td>
                 <i class="fa" [ngClass]="usuario.activo === true ? 'fa-check text-success' : 'fa-times text-danger'" aria-hidden="true"></i>
               </td>
